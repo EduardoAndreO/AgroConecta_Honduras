@@ -1,0 +1,66 @@
+# ============================================================
+# Docker Compose — Levanta PostgreSQL + PostGIS + Redis + Backend
+# Uso: docker compose up -d
+# ============================================================
+version: "3.9"
+
+services:
+  # PostgreSQL 16 con PostGIS
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: agro-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: agro
+      POSTGRES_PASSWORD: agro123
+      POSTGRES_DB: agroconecta
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agro -d agroconecta"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Redis 7.2 para cache y Celery broker
+  redis:
+    image: redis:7.2-alpine
+    container_name: agro-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Backend FastAPI
+  backend:
+    build: .
+    container_name: agro-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://agro:agro123@postgres:5432/agroconecta
+      REDIS_URL: redis://redis:6379/0
+      JWT_SECRET: ${JWT_SECRET:-agroconecta_desarrollo_secreto_no_usar_en_produccion_64_chars_minimo}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:8081,http://localhost:19006,http://localhost:5173}
+      ENVIRONMENT: development
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+
+volumes:
+  pgdata:
+  redisdata:
