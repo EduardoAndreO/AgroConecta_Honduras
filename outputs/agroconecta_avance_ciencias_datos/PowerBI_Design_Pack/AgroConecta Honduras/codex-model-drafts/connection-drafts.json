@@ -1,0 +1,91 @@
+[
+  {
+    "name": "DimProductor",
+    "connectorKind": "File",
+    "connection": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimProductor.csv",
+    "mode": "Import",
+    "columns": [
+      "ProductorID",
+      "Nombre",
+      "Departamento",
+      "Rol"
+    ],
+    "status": "LocallyProfiled",
+    "credentialPolicy": "Configure credentials only in Power BI Desktop or an approved gateway; never store secrets in this draft."
+  },
+  {
+    "name": "DimFinca",
+    "connectorKind": "File",
+    "connection": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimFinca.csv",
+    "mode": "Import",
+    "columns": [
+      "FincaID",
+      "ProductorID",
+      "Finca",
+      "Departamento",
+      "Manzanas",
+      "AltitudMSNM"
+    ],
+    "status": "LocallyProfiled",
+    "credentialPolicy": "Configure credentials only in Power BI Desktop or an approved gateway; never store secrets in this draft."
+  },
+  {
+    "name": "DimLoteCafe",
+    "connectorKind": "File",
+    "connection": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimLoteCafe.csv",
+    "mode": "Import",
+    "columns": [
+      "LoteID",
+      "FincaID",
+      "Variedad",
+      "Beneficio",
+      "Calidad"
+    ],
+    "status": "LocallyProfiled",
+    "credentialPolicy": "Configure credentials only in Power BI Desktop or an approved gateway; never store secrets in this draft."
+  },
+  {
+    "name": "DimFecha",
+    "connectorKind": "File",
+    "connection": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimFecha.csv",
+    "mode": "Import",
+    "columns": [
+      "Fecha",
+      "Anio",
+      "MesNumero",
+      "Mes",
+      "Semana"
+    ],
+    "status": "LocallyProfiled",
+    "credentialPolicy": "Configure credentials only in Power BI Desktop or an approved gateway; never store secrets in this draft."
+  },
+  {
+    "name": "FactPedidos",
+    "connectorKind": "File",
+    "connection": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\FactPedidos.csv",
+    "mode": "Import",
+    "columns": [
+      "PedidoID",
+      "Fecha",
+      "CompradorID",
+      "Comprador",
+      "VendedorID",
+      "Vendedor",
+      "FincaID",
+      "Finca",
+      "Departamento",
+      "LoteID",
+      "Variedad",
+      "Beneficio",
+      "Calidad",
+      "Sacos",
+      "PrecioHNL",
+      "TotalHNL",
+      "EstadoPedido",
+      "MetodoPago",
+      "EstadoPago"
+    ],
+    "status": "LocallyProfiled",
+    "credentialPolicy": "Configure credentials only in Power BI Desktop or an approved gateway; never store secrets in this draft."
+  }
+]

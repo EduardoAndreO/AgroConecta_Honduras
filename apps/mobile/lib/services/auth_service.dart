@@ -1,5 +1,5 @@
 // ============================================================
-// AuthService — login, registro, persistencia de token
+// AuthService — login, registro, refresh automático, persistencia
 // ============================================================
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -40,7 +40,12 @@ class AuthService extends ChangeNotifier {
     if (tok != null && rTok != null && uid != null && rol != null) {
       _state = AuthState(accessToken: tok, refreshToken: rTok, userId: uid, rol: rol);
       api.setToken(tok);
+      api.setRefreshToken(rTok);
     }
+
+    // Registrar callbacks para auto-refresh en ApiService
+    api.onRefreshToken = _doRefresh;
+    api.onUnauthenticated = _forceLogout;
   }
 
   bool get isAuthenticated => _state != null;
@@ -115,18 +120,49 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    await _clearSession();
+    notifyListeners();
+  }
+
+  // ── Internos ────────────────────────────────────────────────
+
+  /// Intenta renovar el access_token usando el refresh_token.
+  /// Retorna el nuevo access_token, o null si falló.
+  Future<String?> _doRefresh() async {
+    final rTok = _state?.refreshToken ?? api.refreshToken;
+    if (rTok == null) return null;
+    try {
+      // rawPost evita pasar por _withAutoRefresh y previene recursión infinita
+      final r = await api.rawPost('/auth/refresh', body: {'refresh_token': rTok});
+      final newState = AuthState.fromJson(r as Map<String, dynamic>);
+      _persist(newState);
+      notifyListeners();
+      return newState.accessToken;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Llamado por ApiService cuando el refresh también falla.
+  Future<void> _forceLogout() async {
+    await _clearSession();
+    notifyListeners();
+  }
+
+  Future<void> _clearSession() async {
     _state = null;
     api.setToken(null);
+    api.setRefreshToken(null);
     await prefs.remove('access_token');
     await prefs.remove('refresh_token');
     await prefs.remove('user_id');
     await prefs.remove('rol');
-    notifyListeners();
   }
 
   void _persist(AuthState s) {
     _state = s;
     api.setToken(s.accessToken);
+    api.setRefreshToken(s.refreshToken);
     prefs.setString('access_token', s.accessToken);
     prefs.setString('refresh_token', s.refreshToken);
     prefs.setString('user_id', s.userId);

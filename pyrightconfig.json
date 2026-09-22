@@ -1,0 +1,23 @@
+{
+  "include": [
+    "services",
+    "shared",
+    "scripts"
+  ],
+  "exclude": [
+    "**/__pycache__",
+    ".venv",
+    "apps"
+  ],
+  "venvPath": "c:\\AgroConecta2_Honduras",
+  "venv": ".venv",
+  "extraPaths": [
+    "c:\\AgroConecta2_Honduras",
+    "c:\\AgroConecta2_Honduras\\services",
+    "c:\\AgroConecta2_Honduras\\shared",
+    "c:\\AgroConecta2_Honduras\\.venv\\Lib\\site-packages"
+  ],
+  "typeCheckingMode": "off",
+  "reportMissingImports": false,
+  "reportMissingTypeStubs": false
+}

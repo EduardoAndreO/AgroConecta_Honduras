@@ -1,12 +1,17 @@
 // ============================================================
-// Card de Publicación — estilo SV con gradiente y comprar
+// PublicacionCard — Premium v4.0 (Stitch)
+// GlassCard + GradientButton + animación de expand
 // ============================================================
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 
 import '../../services/marketplace_service.dart';
 import '../../theme/app_theme.dart';
 import '../../models/models.dart';
+import '../../services/cart_service.dart';
+import '../../services/notification_service.dart';
 
 class PublicacionCard extends StatefulWidget {
   final Publicacion pub;
@@ -24,27 +29,63 @@ class PublicacionCard extends StatefulWidget {
   State<PublicacionCard> createState() => _PublicacionCardState();
 }
 
-class _PublicacionCardState extends State<PublicacionCard> {
+class _PublicacionCardState extends State<PublicacionCard>
+    with SingleTickerProviderStateMixin {
   bool _comprando = false;
   int _cantidad = 1;
   bool _expandido = false;
-  // Formato HNL compartido entre instancias (micro-optimización)
-  static final NumberFormat _fmt = NumberFormat.currency(
-    locale: 'es_HN', symbol: 'HNL ', decimalDigits: 2);
+
+  late AnimationController _expandCtrl;
+  late Animation<double> _expandAnim;
+
+  static final NumberFormat _fmt =
+      NumberFormat.currency(locale: 'es_HN', symbol: 'HNL ', decimalDigits: 2);
+
+  @override
+  void initState() {
+    super.initState();
+    _expandCtrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 280),
+    );
+    _expandAnim = CurvedAnimation(parent: _expandCtrl, curve: Curves.easeInOut);
+  }
+
+  @override
+  void dispose() {
+    _expandCtrl.dispose();
+    super.dispose();
+  }
+
+  void _toggleExpand() {
+    setState(() => _expandido = !_expandido);
+    if (_expandido) {
+      _expandCtrl.forward();
+    } else {
+      _expandCtrl.reverse();
+    }
+  }
 
   Future<void> _comprar() async {
     setState(() => _comprando = true);
     try {
-      final pedido = await widget.mk.crearPedido(
-        publicacionId: widget.pub.id, cantidad: _cantidad);
+      await widget.mk
+          .crearPedido(publicacionId: widget.pub.id, cantidad: _cantidad);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('✓ Pedido creado por HNL ${pedido.totalHnl.toStringAsFixed(2)}'),
+          content: Text(
+            '✓ Pedido creado · HNL ',
+            style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+          ),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       );
+      await NotificationService.instance.show(
+          title: 'Pedido creado',
+          body: 'Tu pedido quedó pendiente de confirmación.');
       widget.onCompra();
     } catch (e) {
       if (!mounted) return;
@@ -53,6 +94,7 @@ class _PublicacionCardState extends State<PublicacionCard> {
           content: Text('Error: $e'),
           backgroundColor: AppColors.danger,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         ),
       );
     } finally {
@@ -73,126 +115,270 @@ class _PublicacionCardState extends State<PublicacionCard> {
   Widget build(BuildContext context) {
     return GlassCard(
       padding: const EdgeInsets.all(18),
+      radius: BorderRadius.circular(20),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        // ── Header ─────────────────────────────────────────
         Row(children: [
-          Container(
-            width: 44, height: 44,
-            decoration: BoxDecoration(
-              gradient: AppGradients.brand,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.coffee, color: Colors.white, size: 22),
+          GradientIcon(
+            icon: Icons.coffee_rounded,
+            size: 22,
+            containerSize: 48,
+            gradient: AppGradients.brandDiagonal,
+            borderRadius: BorderRadius.circular(14),
           ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(
                 widget.pub.titulo,
-                style: const TextStyle(
-                  fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-                maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 2),
               Row(children: [
-                const Icon(Icons.person_outline, size: 14, color: AppColors.textSecondary),
+                const Icon(Icons.person_outline, size: 13, color: AppColors.textMuted),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     widget.pub.vendedorNombre,
-                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
-                    maxLines: 1, overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.inter(
+                      color: AppColors.textSecondary, fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ]),
             ]),
           ),
-          StatusChip(label: widget.pub.estado, type: _estadoChip(widget.pub.estado), small: true),
+          StatusChip(
+            label: widget.pub.estado,
+            type: _estadoChip(widget.pub.estado),
+            small: true,
+          ),
         ]),
-        if (widget.pub.descripcion != null && _expandido) ...[
-          const SizedBox(height: 12),
-          Text(widget.pub.descripcion!, style: const TextStyle(color: AppColors.textSecondary)),
-        ],
+
+        // ── Descripción expandible ──────────────────────────
+        SizeTransition(
+          sizeFactor: _expandAnim,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Text(
+              widget.pub.descripcion ?? '',
+              style: GoogleFonts.inter(
+                color: AppColors.textSecondary, fontSize: 13, height: 1.5,
+              ),
+            ),
+          ),
+        ),
+
         const SizedBox(height: 14),
+
+        // ── Precio + disponibilidad ────────────────────────
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: AppColors.accent.withValues(alpha: 0.06),
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColors.accent.withValues(alpha: 0.12)),
           ),
           child: Row(children: [
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                 Text(
                   _fmt.format(widget.pub.precioHnl),
-                  style: const TextStyle(
-                    fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.accent),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.accentBright,
+                  ),
                 ),
-                const Text('por saco', style: TextStyle(fontSize: 11, color: AppColors.textMuted)),
+                Text(
+                  'por saco',
+                  style: GoogleFonts.inter(fontSize: 11, color: AppColors.textMuted),
+                ),
               ]),
             ),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
                 color: AppColors.infoSoft,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.info.withValues(alpha: 0.3)),
               ),
               child: Text(
-                '${widget.pub.sacos} disp.',
-                style: const TextStyle(
-                  color: AppColors.info, fontWeight: FontWeight.w600, fontSize: 12),
+                ' disp.',
+                style: GoogleFonts.inter(
+                  color: AppColors.info, fontWeight: FontWeight.w600, fontSize: 13,
+                ),
               ),
             ),
           ]),
         ),
+
         const SizedBox(height: 14),
+
+        // ── Controles de cantidad + acciones ───────────────
         Row(children: [
-          IconButton(
-            icon: const Icon(Icons.remove_circle_outline, color: AppColors.accent),
-            onPressed: _cantidad > 1 ? () => setState(() => _cantidad--) : null,
+          // Botón -
+          _QtyButton(
+            icon: Icons.remove_rounded,
+            enabled: _cantidad > 1,
+            onTap: () => setState(() => _cantidad--),
           ),
+          const SizedBox(width: 8),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: AppColors.bgLight,
-              borderRadius: BorderRadius.circular(8),
+              color: AppColors.bg3,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
             ),
-            child: Text('$_cantidad', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+            child: Center(
+              child: Text(
+                '',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w800, fontSize: 17, color: Colors.white,
+                ),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.add_circle_outline, color: AppColors.accent),
-            onPressed: _cantidad < widget.pub.sacos ? () => setState(() => _cantidad++) : null,
+          const SizedBox(width: 8),
+          // Botón +
+          _QtyButton(
+            icon: Icons.add_rounded,
+            enabled: _cantidad < widget.pub.sacos,
+            onTap: () => setState(() => _cantidad++),
           ),
           const Spacer(),
           if (_comprando)
-            const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+            const SizedBox(
+              width: 26, height: 26,
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5, color: AppColors.accent,
+              ),
+            )
           else
-            ElevatedButton.icon(
-              onPressed: _comprar,
-              icon: const Icon(Icons.shopping_bag_outlined, size: 16),
-              label: const Text('Comprar'),
-              style: ElevatedButton.styleFrom(
-                minimumSize: const Size(130, 44),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              // Carrito
+              GestureDetector(
+                onTap: () {
+                  context.read<CartService>().add(widget.pub, quantity: _cantidad);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('Agregado al carrito',
+                          style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+                      backgroundColor: AppColors.bg3,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                    ),
+                  );
+                },
+                child: Container(
+                  width: 42, height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.accent.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: const Icon(Icons.add_shopping_cart_outlined,
+                      color: AppColors.accent, size: 19),
+                ),
               ),
-            ),
-        ]),
-        const SizedBox(height: 8),
-        Center(
-          child: GestureDetector(
-            onTap: () => setState(() => _expandido = !_expandido),
-            child: Row(mainAxisSize: MainAxisSize.min, children: [
-              Text(
-                _expandido ? 'Ver menos' : 'Ver más',
-                style: const TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-              Icon(
-                _expandido ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
-                color: AppColors.accent, size: 16,
+              const SizedBox(width: 8),
+              // Comprar
+              GradientButton(
+                onPressed: _comprar,
+                gradient: AppGradients.brandGreen,
+                height: 42,
+                borderRadius: BorderRadius.circular(12),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 16),
+                    const SizedBox(width: 6),
+                    Text('Comprar', style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white,
+                    )),
+                  ],
+                ),
               ),
             ]),
+        ]),
+
+        const SizedBox(height: 10),
+
+        // ── Toggle ver más ─────────────────────────────────
+        if (widget.pub.descripcion != null && widget.pub.descripcion!.isNotEmpty)
+          Center(
+            child: GestureDetector(
+              onTap: _toggleExpand,
+              child: AnimatedBuilder(
+                animation: _expandAnim,
+                builder: (ctx, _) => Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      _expandido ? 'Ver menos' : 'Ver más',
+                      style: GoogleFonts.inter(
+                        color: AppColors.accent, fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    AnimatedRotation(
+                      turns: _expandido ? 0.5 : 0.0,
+                      duration: const Duration(milliseconds: 280),
+                      child: const Icon(
+                        Icons.keyboard_arrow_down_rounded,
+                        color: AppColors.accent, size: 18,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+      ]),
+    );
+  }
+}
+
+class _QtyButton extends StatelessWidget {
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onTap;
+  const _QtyButton({required this.icon, required this.enabled, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 150),
+        width: 42, height: 42,
+        decoration: BoxDecoration(
+          color: enabled
+              ? AppColors.accent.withValues(alpha: 0.12)
+              : AppColors.bg3.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: enabled
+                ? AppColors.accent.withValues(alpha: 0.4)
+                : AppColors.border.withValues(alpha: 0.2),
           ),
         ),
-      ]),
+        child: Icon(icon,
+          color: enabled ? AppColors.accent : AppColors.textMuted,
+          size: 20,
+        ),
+      ),
     );
   }
 }

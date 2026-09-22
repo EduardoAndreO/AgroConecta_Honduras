@@ -5,7 +5,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     # PostgreSQL
-    database_url: str = "postgresql+asyncpg://agro:agro123@localhost:5432/agroconecta"
+    database_url: str = "postgresql+asyncpg://postgres.iscztdmnkrbtgtzxnnti:AgroConecta2026%21@aws-0-us-west-2.pooler.supabase.com:6543/postgres?ssl=require"
 
     # Redis
     redis_url: str = "redis://localhost:6379/0"

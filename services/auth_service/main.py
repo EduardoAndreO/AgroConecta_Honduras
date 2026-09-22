@@ -60,6 +60,12 @@ class UserOut(BaseModel):
         from_attributes = True
 
 
+class UserUpdateIn(BaseModel):
+    nombre: str = Field(min_length=3, max_length=120)
+    telefono: str = Field(min_length=8, max_length=20)
+    departamento: str = Field(min_length=2, max_length=40)
+
+
 @router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
 async def register(payload: RegisterIn, db: AsyncSession = Depends(get_db)) -> TokenOut:
     if not RTN_REGEX.match(payload.rtn):
@@ -134,10 +140,34 @@ async def refresh(payload: RefreshIn, db: AsyncSession = Depends(get_db)) -> Tok
 
 @router.get("/me", response_model=UserOut)
 async def me(user_id: str = Depends(get_current_user_id), db: AsyncSession = Depends(get_db)) -> UserOut:
-    result = await db.execute(select(Productor).where(Productor.id == user_id))
+    import uuid as _uuid
+    user_uuid = _uuid.UUID(str(user_id)) if isinstance(user_id, str) else user_id
+    result = await db.execute(select(Productor).where(Productor.id == user_uuid))
     p = result.scalar_one_or_none()
     if not p:
         raise HTTPException(404, "Usuario no encontrado")
+    return UserOut(
+        id=str(p.id), nombre=p.nombre, rtn=p.rtn, email=p.email,
+        telefono=p.telefono, departamento=p.departamento, rol=p.rol, creado=p.creado,
+    )
+
+
+@router.put("/me", response_model=UserOut)
+async def update_me(
+    payload: UserUpdateIn,
+    user_id: str = Depends(get_current_user_id),
+    db: AsyncSession = Depends(get_db),
+) -> UserOut:
+    import uuid as _uuid
+    user_uuid = _uuid.UUID(str(user_id)) if isinstance(user_id, str) else user_id
+    result = await db.execute(select(Productor).where(Productor.id == user_uuid))
+    p = result.scalar_one_or_none()
+    if not p:
+        raise HTTPException(404, "Usuario no encontrado")
+    p.nombre = payload.nombre.strip()
+    p.telefono = payload.telefono.strip()
+    p.departamento = payload.departamento.strip()
+    await db.flush()
     return UserOut(
         id=str(p.id), nombre=p.nombre, rtn=p.rtn, email=p.email,
         telefono=p.telefono, departamento=p.departamento, rol=p.rol, creado=p.creado,

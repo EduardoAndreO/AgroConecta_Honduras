@@ -1,0 +1,30 @@
+[
+  {
+    "measureName": "Ventas Netas",
+    "tableName": "F",
+    "expression": "TODO: define approved DAX expression",
+    "owner": "TODO: assign owner",
+    "description": "TODO: define business meaning"
+  },
+  {
+    "measureName": "Pedidos No Cancelados",
+    "tableName": "F",
+    "expression": "TODO: define approved DAX expression",
+    "owner": "TODO: assign owner",
+    "description": "TODO: define business meaning"
+  },
+  {
+    "measureName": "Sacos Vendidos",
+    "tableName": "F",
+    "expression": "TODO: define approved DAX expression",
+    "owner": "TODO: assign owner",
+    "description": "TODO: define business meaning"
+  },
+  {
+    "measureName": "Ticket Promedio",
+    "tableName": "F",
+    "expression": "TODO: define approved DAX expression",
+    "owner": "TODO: assign owner",
+    "description": "TODO: define business meaning"
+  }
+]

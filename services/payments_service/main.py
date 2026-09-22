@@ -38,11 +38,12 @@ async def iniciar_pago(
     db: AsyncSession = Depends(get_db),
 ) -> PagoOut:
     """Inicia el pago de un pedido. Modo sandbox: simula aprobación inmediata."""
+    user_uuid = UUID(str(user_id)) if isinstance(user_id, str) else user_id
     p_result = await db.execute(select(Pedido).where(Pedido.id == payload.pedido_id))
     pedido = p_result.scalar_one_or_none()
     if not pedido:
         raise HTTPException(404, "Pedido no encontrado")
-    if pedido.comprador_id != user_id:
+    if pedido.comprador_id != user_uuid:
         raise HTTPException(403, "Solo el comprador puede pagar este pedido")
     if pedido.estado not in (EstadoPedidoEnum.confirmado, EstadoPedidoEnum.pagando):
         raise HTTPException(400, f"El pedido debe estar confirmado, no {pedido.estado.value}")
@@ -75,10 +76,11 @@ async def obtener_pago(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> PagoOut:
+    user_uuid = UUID(str(user_id)) if isinstance(user_id, str) else user_id
     stmt = (
         select(Pago)
         .join(Pedido, Pago.pedido_id == Pedido.id)
-        .where(Pago.id == pago_id, (Pedido.comprador_id == user_id) | (Pedido.vendedor_id == user_id))
+        .where(Pago.id == pago_id, (Pedido.comprador_id == user_uuid) | (Pedido.vendedor_id == user_uuid))
     )
     result = await db.execute(stmt)
     pago = result.scalar_one_or_none()
@@ -96,10 +98,11 @@ async def pago_por_pedido(
     user_id: str = Depends(get_current_user_id),
     db: AsyncSession = Depends(get_db),
 ) -> PagoOut:
+    user_uuid = UUID(str(user_id)) if isinstance(user_id, str) else user_id
     stmt = (
         select(Pago)
         .join(Pedido, Pago.pedido_id == Pedido.id)
-        .where(Pago.pedido_id == pedido_id, (Pedido.comprador_id == user_id) | (Pedido.vendedor_id == user_id))
+        .where(Pago.pedido_id == pedido_id, (Pedido.comprador_id == user_uuid) | (Pedido.vendedor_id == user_uuid))
     )
     result = await db.execute(stmt)
     pago = result.scalar_one_or_none()

@@ -1,0 +1,8 @@
+python_path = "c:/AgroConecta2_Honduras/.venv/Scripts/python.exe"
+python_interpreter = "c:/AgroConecta2_Honduras/.venv/Scripts/python.exe"
+search_paths = [
+    "c:/AgroConecta2_Honduras",
+    "c:/AgroConecta2_Honduras/services",
+    "c:/AgroConecta2_Honduras/shared",
+    "c:/AgroConecta2_Honduras/.venv/Lib/site-packages"
+]

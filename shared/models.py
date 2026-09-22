@@ -132,7 +132,9 @@ class LoteCafe(Base):
     finca_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("fincas.id", ondelete="CASCADE"), nullable=False)
     variedad: Mapped[str] = mapped_column(String(60), nullable=False)
     siembra: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    tipo_beneficio: Mapped[BeneficioEnum] = mapped_column(Enum(BeneficioEnum), nullable=False)
+    tipo_beneficio: Mapped[BeneficioEnum] = mapped_column(
+        PGEnum(BeneficioEnum, name="beneficio_enum", create_type=False), nullable=False
+    )
     creado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     finca: Mapped[Finca] = relationship(back_populates="lotes")
@@ -146,7 +148,9 @@ class Cosecha(Base):
     lote_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("lotes_cafe.id", ondelete="CASCADE"), nullable=False)
     quintales: Mapped[float] = mapped_column(Numeric(8, 2), nullable=False)
     fecha: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    calidad: Mapped[CalidadEnum] = mapped_column(Enum(CalidadEnum), nullable=False)
+    calidad: Mapped[CalidadEnum] = mapped_column(
+        PGEnum(CalidadEnum, name="calidad_enum", create_type=False), nullable=False
+    )
     creado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 
     lote: Mapped[LoteCafe] = relationship(back_populates="cosechas")
@@ -185,7 +189,9 @@ class Pedido(Base):
     cantidad: Mapped[int] = mapped_column(Integer, nullable=False)
     total_hnl: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
     estado: Mapped[EstadoPedidoEnum] = mapped_column(
-        Enum(EstadoPedidoEnum), default=EstadoPedidoEnum.pendiente, nullable=False
+        PGEnum(EstadoPedidoEnum, name="estado_pedido_enum", create_type=False),
+        default=EstadoPedidoEnum.pendiente,
+        nullable=False,
     )
     creado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     actualizado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
@@ -203,9 +209,13 @@ class Pago(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     pedido_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pedidos.id", ondelete="CASCADE"), nullable=False)
     monto_hnl: Mapped[float] = mapped_column(Numeric(12, 2), nullable=False)
-    metodo: Mapped[MetodoPagoEnum] = mapped_column(Enum(MetodoPagoEnum), nullable=False)
+    metodo: Mapped[MetodoPagoEnum] = mapped_column(
+        PGEnum(MetodoPagoEnum, name="metodo_pago_enum", create_type=False), nullable=False
+    )
     estado: Mapped[EstadoPagoEnum] = mapped_column(
-        Enum(EstadoPagoEnum), default=EstadoPagoEnum.pendiente, nullable=False
+        PGEnum(EstadoPagoEnum, name="estado_pago_enum", create_type=False),
+        default=EstadoPagoEnum.pendiente,
+        nullable=False,
     )
     referencia: Mapped[str | None] = mapped_column(String(60))
     creado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -220,7 +230,9 @@ class Envio(Base):
     pedido_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pedidos.id", ondelete="CASCADE"), nullable=False)
     direccion: Mapped[str] = mapped_column(Text, nullable=False)
     estado: Mapped[EstadoEnvioEnum] = mapped_column(
-        Enum(EstadoEnvioEnum), default=EstadoEnvioEnum.preparando, nullable=False
+        PGEnum(EstadoEnvioEnum, name="estado_envio_enum", create_type=False),
+        default=EstadoEnvioEnum.preparando,
+        nullable=False,
     )
     tracking_qr: Mapped[str | None] = mapped_column(String(40), unique=True)
     creado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)

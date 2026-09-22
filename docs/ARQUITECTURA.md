@@ -1,5 +1,7 @@
 # Arquitectura — AgroConecta Honduras
 
+> El documento académico ampliado con los cuatro diagramas UML, el DFD de contexto y el DFD de nivel 1 está en [`UML_AGROCONECTA.md`](UML_AGROCONECTA.md).
+
 ## Diagrama de capas
 
 ```

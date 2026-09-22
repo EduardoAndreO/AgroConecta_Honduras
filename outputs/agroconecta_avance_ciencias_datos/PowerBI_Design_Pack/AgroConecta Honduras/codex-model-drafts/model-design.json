@@ -1,0 +1,136 @@
+{
+  "schema": "codex.powerbi.modelWizard.v1",
+  "projectName": "AgroConecta Honduras",
+  "businessPurpose": "Analizar ventas, volumen y estado de pedidos del marketplace cafetalero por fecha, finca, departamento y variedad.",
+  "evidenceMaturity": "Draft",
+  "architecture": {
+    "pattern": "StarSchema",
+    "factTables": "FactPedidos",
+    "dimensionTables": [
+      "DimProductor",
+      "DimFinca",
+      "DimLoteCafe",
+      "DimFecha"
+    ],
+    "sourceNames": [
+      "DimProductor",
+      "DimFinca",
+      "DimLoteCafe",
+      "DimFecha",
+      "FactPedidos"
+    ],
+    "sourceProfiles": [
+      {
+        "name": "DimProductor",
+        "path": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimProductor.csv",
+        "extension": ".csv",
+        "columns": [
+          "ProductorID",
+          "Nombre",
+          "Departamento",
+          "Rol"
+        ]
+      },
+      {
+        "name": "DimFinca",
+        "path": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimFinca.csv",
+        "extension": ".csv",
+        "columns": [
+          "FincaID",
+          "ProductorID",
+          "Finca",
+          "Departamento",
+          "Manzanas",
+          "AltitudMSNM"
+        ]
+      },
+      {
+        "name": "DimLoteCafe",
+        "path": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimLoteCafe.csv",
+        "extension": ".csv",
+        "columns": [
+          "LoteID",
+          "FincaID",
+          "Variedad",
+          "Beneficio",
+          "Calidad"
+        ]
+      },
+      {
+        "name": "DimFecha",
+        "path": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\DimFecha.csv",
+        "extension": ".csv",
+        "columns": [
+          "Fecha",
+          "Anio",
+          "MesNumero",
+          "Mes",
+          "Semana"
+        ]
+      },
+      {
+        "name": "FactPedidos",
+        "path": "C:\\AgroConecta2_Honduras\\outputs\\agroconecta_avance_ciencias_datos\\FactPedidos.csv",
+        "extension": ".csv",
+        "columns": [
+          "PedidoID",
+          "Fecha",
+          "CompradorID",
+          "Comprador",
+          "VendedorID",
+          "Vendedor",
+          "FincaID",
+          "Finca",
+          "Departamento",
+          "LoteID",
+          "Variedad",
+          "Beneficio",
+          "Calidad",
+          "Sacos",
+          "PrecioHNL",
+          "TotalHNL",
+          "EstadoPedido",
+          "MetodoPago",
+          "EstadoPago"
+        ]
+      }
+    ],
+    "connectorSupport": "Any connector available in the user's installed Power BI Desktop Get Data experience can be declared by connectorKind."
+  },
+  "semanticPlan": {
+    "measures": [
+      "Ventas Netas",
+      "Pedidos No Cancelados",
+      "Sacos Vendidos",
+      "Ticket Promedio"
+    ],
+    "requiredPolicies": [
+      "Assign KPI owner",
+      "Add measure descriptions",
+      "Define RLS roles",
+      "Define freshness SLO",
+      "Add semantic tests"
+    ]
+  },
+  "reportPlan": {
+    "pages": [
+      "Executive Overview",
+      "Trend and Drivers",
+      "Detail Explorer",
+      "Data Quality"
+    ],
+    "firstPageKpis": [
+      "Ventas Netas",
+      "Pedidos No Cancelados",
+      "Sacos Vendidos",
+      "Ticket Promedio"
+    ]
+  },
+  "safeNextSteps": [
+    "Create a new PBIP project in Power BI Desktop.",
+    "Copy reviewed model and report drafts into the PBIP project.",
+    "Configure credentials only in Power BI Desktop or an approved gateway.",
+    "Run semantic tests and open the project in Power BI Desktop before publishing."
+  ],
+  "binaryBoundary": "The wizard does not create or modify PBIX/PBIT binaries and does not publish to Power BI or Fabric."
+}

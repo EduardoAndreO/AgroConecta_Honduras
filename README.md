@@ -124,6 +124,7 @@ flutter run -d chrome         # o -d android / -d ios
 
 - **[`docs/LEVANTAR_PROYECTO.md`](docs/LEVANTAR_PROYECTO.md)** — Guía paso a paso con troubleshooting
 - **[`docs/ARQUITECTURA.md`](docs/ARQUITECTURA.md)** — Diagramas + lista de endpoints
+- **[`docs/UML_AGROCONECTA.md`](docs/UML_AGROCONECTA.md)** — 4 diagramas UML, DFD y explicación académica
 
 ## 🛠️ Stack
 

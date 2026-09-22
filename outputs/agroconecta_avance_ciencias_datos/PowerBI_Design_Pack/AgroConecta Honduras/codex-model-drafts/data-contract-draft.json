@@ -1,0 +1,22 @@
+{
+  "schema": "codex.powerbi.dataContractDraft.v1",
+  "sources": [
+    "DimProductor",
+    "DimFinca",
+    "DimLoteCafe",
+    "DimFecha",
+    "FactPedidos"
+  ],
+  "facts": "FactPedidos",
+  "dimensions": [
+    "DimProductor",
+    "DimFinca",
+    "DimLoteCafe",
+    "DimFecha"
+  ],
+  "rules": [
+    "Keys must be non-null and unique in dimensions.",
+    "Fact tables must reference dimensions through defined keys.",
+    "Every KPI must declare owner, grain, format, and refresh expectation."
+  ]
+}

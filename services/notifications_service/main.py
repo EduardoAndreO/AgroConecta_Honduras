@@ -26,9 +26,11 @@ async def listar_notificaciones(
     db: AsyncSession = Depends(get_db),
 ) -> list[NotificacionOut]:
     """Lista notificaciones derivadas de los pedidos del usuario."""
+    from uuid import UUID
+    user_uuid = UUID(str(user_id)) if isinstance(user_id, str) else user_id
     stmt = (
         select(Pedido)
-        .where((Pedido.comprador_id == user_id) | (Pedido.vendedor_id == user_id))
+        .where((Pedido.comprador_id == user_uuid) | (Pedido.vendedor_id == user_uuid))
         .order_by(Pedido.creado.desc())
         .limit(20)
     )
@@ -37,7 +39,7 @@ async def listar_notificaciones(
 
     notifs: list[NotificacionOut] = []
     for p in pedidos:
-        if p.comprador_id == user_id:
+        if p.comprador_id == user_uuid:
             notifs.append(NotificacionOut(
                 id=f"ped-{p.id}",
                 tipo="pedido_comprador",

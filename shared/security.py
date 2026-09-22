@@ -1,19 +1,26 @@
-"""Utilidades de seguridad — JWT y hashing de contraseñas."""
+"""Utilidades de seguridad — JWT y hashing de contraseñas con bcrypt nativo."""
 from datetime import datetime, timedelta, timezone
 from typing import Any
+import bcrypt
 from jose import JWTError, jwt
-from passlib.context import CryptContext
 from shared.config import settings
-
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
 def hash_password(plain: str) -> str:
-    return pwd_context.hash(plain)
+    """Genera hash bcrypt seguro (truncado a 72 bytes por estándar de bcrypt)."""
+    password_bytes = plain.encode("utf-8")[:72]
+    salt = bcrypt.gensalt(rounds=12)
+    return bcrypt.hashpw(password_bytes, salt).decode("utf-8")
 
 
 def verify_password(plain: str, hashed: str) -> bool:
-    return pwd_context.verify(plain, hashed)
+    """Verifica contraseña en texto plano contra el hash bcrypt."""
+    try:
+        password_bytes = plain.encode("utf-8")[:72]
+        hashed_bytes = hashed.encode("utf-8")
+        return bcrypt.checkpw(password_bytes, hashed_bytes)
+    except Exception:
+        return False
 
 
 def create_access_token(data: dict[str, Any], expires_minutes: int | None = None) -> str:

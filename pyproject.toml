@@ -1,0 +1,21 @@
+[tool.pyrefly]
+python_path = "c:/AgroConecta2_Honduras/.venv/Scripts/python.exe"
+python_interpreter = "c:/AgroConecta2_Honduras/.venv/Scripts/python.exe"
+search_paths = [
+    "c:/AgroConecta2_Honduras",
+    "c:/AgroConecta2_Honduras/services",
+    "c:/AgroConecta2_Honduras/shared",
+    "c:/AgroConecta2_Honduras/.venv/Lib/site-packages"
+]
+
+[tool.pyright]
+venvPath = "."
+venv = ".venv"
+extraPaths = [
+    ".",
+    "services",
+    "shared",
+    ".venv/Lib/site-packages"
+]
+typeCheckingMode = "off"
+reportMissingImports = false
