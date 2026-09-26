@@ -10,6 +10,7 @@ class Publicacion {
   final int sacos;
   final String estado;
   final DateTime creado;
+  final String? imageUrl;
 
   Publicacion({
     required this.id,
@@ -22,6 +23,7 @@ class Publicacion {
     required this.sacos,
     required this.estado,
     required this.creado,
+    this.imageUrl,
   });
 
   factory Publicacion.fromJson(Map<String, dynamic> j) => Publicacion(
@@ -35,6 +37,7 @@ class Publicacion {
         sacos: j['sacos'] as int,
         estado: j['estado'] as String,
         creado: DateTime.parse(j['creado'] as String),
+        imageUrl: j['image_url'] as String?,
       );
 }
 
