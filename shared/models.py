@@ -103,7 +103,7 @@ class Productor(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     departamento: Mapped[str] = mapped_column(String(40), nullable=False)
     rol: Mapped[RolEnum] = mapped_column(Enum(RolEnum, name="rol_enum"), nullable=False, default=RolEnum.caficultor)
-    ubicacion: Mapped[object | None] = mapped_column(_geo_point())
+    # ubicacion: Mapped[object | None] = mapped_column(_geo_point())
     activo: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     creado: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
 

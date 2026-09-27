@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../services/auth_service.dart';
 import '../../theme/app_theme.dart';
 import '../register/register_screen.dart';
+import '../marketplace/marketplace_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -60,7 +61,11 @@ class _LoginScreenState extends State<LoginScreen>
       password: _passCtrl.text,
     );
     if (!mounted) return;
-    if (!ok) {
+    if (ok) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+      );
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(auth.error ?? 'Error al iniciar sesión'),
@@ -196,10 +201,9 @@ class _LoginScreenState extends State<LoginScreen>
                                         setState(() => _obscure = !_obscure),
                                   ),
                                 ),
-                                validator: (v) =>
-                                    (v == null || v.length < 8)
-                                        ? 'Mínimo 8 caracteres'
-                                        : null,
+                                validator: (v) => (v == null || v.length < 8)
+                                    ? 'Mínimo 8 caracteres'
+                                    : null,
                               ),
                               const SizedBox(height: 28),
                               if (auth.isLoading)
